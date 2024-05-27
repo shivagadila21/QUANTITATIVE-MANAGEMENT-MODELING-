@@ -1,0 +1,184 @@
+---
+title: "Assignment Module 2 - LP Model"
+author: "shiva gadila"
+date: "2023-09-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#The problem provides the following information:
+
+Back Savers is a company that produces backpacks.Back Savers manufactures two types of backpacks: Collegiate and Mini. They receive a weekly fabric shipment of 5000 square feet. Collegiate backpacks need 3 square feet of fabric, while Minis require 2 square feet. Sales forecasts allow for up to 1000 Collegiates and 1200 Minis per week. Producing a Collegiate takes 45 minutes of labor and yields a profit of $32 per unit, while Mini production takes 40 minutes, generating $24 profit per unit. The company has 35 laborers working 40 hours a week. Management aims to find the best production quantities for both backpack types to maximize profit. 
+```{r}
+LpModel <- matrix(c(3,45,"$32",2,40,"$24"),ncol=3,byrow=TRUE)
+#creating a dataframe 
+colnames(LpModel)<-c("Fabric","Labor","Profit")
+rownames(LpModel)<-c("Collegiate", "Mini")
+Dataframe = as.table(LpModel)
+Dataframe
+```
+#Decision Variables:
+
+Let x be the number of Collegiate backpacks to produce per week $$= x$$
+Let y be the number of Mini backpacks to produce per week $$= y$$
+Thus, the decision variables of the company are: $$ = x, y $$
+
+#Objective Function:
+
+The objective is to maximize the total profit, which is the sum of profits from Collegiate and Mini backpacks:
+
+$$Maximize \hspace{.2cm} Z=32_x +24_y$$
+#Constraints:
+
+The maximum number of Collegiate bags that can be made is one thousand, and the quantity of Collegiate bags that can be made (represented by x) should be anywhere from zero to one thousand:
+$$	0 ≤ x ≤ 1000$$
+The maximum number of Mini bags that can be made is 1200, and the quantity of Mini bags that can be made (shown by y) should be between 0 and 1200.
+$$ 	0 ≤  y ≤ 1200 $$
+Taking into account the production quantities of Mini bags (y) and Collegiate bags (x), the total amount of fabric used should not exceed the 5,000 square feet of fabric shipped weekly. 
+•	Collegiate Bag – 3sqft of nylon 
+•	Mini Bag – 2sqft of nylon 
+ so, 
+ $$3_x + 2_y ≤ 5000$$
+#Labor constraint: There are 35 laborers, each providing 40 hours of labor per week
+Each collegiate bag takes 45mins = 45/60hrs =3/4hrs 
+Each Mini bag takes 40mins= 40/60hrs=2/3hrs  
+
+$$ [3/4]_x +[2/3]_y  ≤ 1400\hspace{.2cm}hours$$
+#Non-negativity Constraint: The production quantities cannot be negative.
+$$3_x + 2_y< 5000$$
+$$x ≥ 0 _x ≥ 0$$
+$$y≥ 0_y ≥ 0$$
+#Hence the mathematical formulation for this LP problem is in the limits of  
+$$0 ≤ x ≤ 1000\hspace{.2cm}and\hspace{.2cm}0 ≤ y ≤ 1200$$
+#Make a detailed note of the entire mathematical formulation for this LP problem
+$$  Maximize  \hspace{.2cm}  Z = 32_x + 24_y $$
+$$3_x+2y \le 5,000 $$
+$$0.75_x+ 0.67y\le 1,400 \hspace{.2cm}hours $$
+$$x \le 1000$$
+$$x \le 1200$$ and 
+$$x \ge 0, y \ge 0$$
+```{R}
+library(lpSolve)
+library(lpSolveAPI)
+library(lpSolve)
+library(tinytex)
+lprec<-make.lp(0,3)
+x <- 0  
+y <- 0  
+# Maximize profit: Z = 32x + 24y
+
+objective <- c(32,24) #  Coefficients for cx and my
+
+# Coefficients grid for requirements
+a <- matrix(c(3,2,1,0,0,1,45,40), nrow = 4, byrow = TRUE)
+
+# Constraints' Right-Hand Side (RHS) values
+b <- c(5000,1000,1200,84000)
+
+# Types of constraints "=" stands for "less than or equal to"
+constraint_types <- c("<=", "<=", "<=", "<=")
+
+
+lp_result <- lp("max", objective, a, constraint_types, b)
+print(lp_result$solution)
+
+max_profit <- lp_result$objval
+print(max_profit)
+```
+# Question 2 
+
+Three branch plants of the Weigelt Corporation have excess production capacity. Luckily, the organization has another item prepared to start creation, and each of the three plants have this ability, so a portion of the overabundance limit can be utilized along these lines. This item is available in three sizes—large, medium, and small—that each bring in a net profit of $420 per unit, $360 per unit, and $300 per unit, respectively. Regardless of the size or combination of sizes involved, Plants 1, 2, and 3 have the excess capacity to produce 750, 900, and 450 units of this product per day, respectively. The new product's production rates are also constrained by the available in-process storage space. For a day's production of this product, plants 1, 2, and 3 each have 13,000, 12,000, and 5,000 square feet of in-process storage space available. It takes 20, 15, and 12 square feet to produce each daily unit of the large, medium, and small sizes. According to forecasts for sales, 900, 1,200, and 750 large, medium, and small sizes would each be sold each day if they were available. At each plant, a few workers should be laid off except if the vast majority of the plant's overabundance creation limit can be utilized to deliver the new item. Management has decided that the plants should use the same proportion of their excess capacity to produce the new product in order to avoid layoffs whenever possible.
+
+```{r}
+factory <- matrix(c(750,13000,900,12000,450,5000),ncol=2,byrow=TRUE)
+colnames(factory)<-c("surplus capacity","intermediate storage.")
+rownames(factory)<-c("factory1", "factory2", "factory3")
+factory_Data_frame = as.table(factory)
+factory_Data_frame
+```
+```{r}
+Backpacks <- matrix(c("$420",20,900,"$360",15,1200,"$300",12,750),ncol=3,byrow=TRUE) #per Unit, per unit, per day
+colnames(Backpacks)<-c("Revenue","Storage_Space", "Sales")
+rownames(Backpacks)<-c("Large", "Medium", "Small")
+Backpacks_datraframe = as.table(Backpacks)
+Backpacks_datraframe
+
+```
+#The organisation wanted to know the amount of every one of the sizes ought to be created by every one of the plants to expand profit
+
+•	Let L represent the number of large-sized units produced.
+•	Let M represent the number of medium-sized units produced.
+•	Let S represent the number of small-sized units produced.   
+
+Factory1 $$= L_1, M_1,S_1$$
+Factory2 $$= L_2, M_2,S_2$$
+factory3 $$= L_3, M_3,S_3$$
+
+
+#Objective Function**
+
+#The objective is to maximize the profit by knowing how much of each of the sizes should be produced by each of the plants.
+$$  Max \hspace{.2cm}  Z = 420(L_1+L_2+L_3) + 360(M_1+M_2+M_3) + 300(S_1+S_2+S_3) $$
+#1.Production Capacity Constraints for each Factory:
+
+$$L_1+M_1+S_1 \le 750 \hspace{0.2cm} (factory1)$$
+$$L_2+M_2+S_2 \le 900 \hspace{0.2cm} (Factory2)$$
+$$L_3+M_3+S_3 \le 450\hspace{0.2cm} (Factory3)$$
+#2.intermediate storage Constraints for each Plant:
+$$20L_1+15M_1+12S_1 \le 13,000 \hspace{0.2cm} (Factory1 )$$
+$$20L_2+15M_2+12S_2 \le 12,000 \hspace{0.2cm} (Factory2)$$
+$$20L_3+15M_3+12S_3 \le 5,000\hspace{0.2cm} (Factory3)$$
+
+#3.SalesConstraints for each size:
+$$L_1+L_2+L_3 \le 900 \hspace{0.2cm} (Large \hspace{0.2cm} Size)$$
+$$M_1+M_2+M_3 \le 1200 \hspace{0.2cm} (Medium \hspace{0.2cm} Size)$$
+$$S_1+S_2+S_3 \le 750 \hspace{0.2cm} (Small \hspace{0.2cm} Size)$$
+
+#4.Equal utilization constraint for each plant's excess capacity: 
+$$\frac{(L_1+M_1+S_1)}{750} = \frac{(L_2+M_2+S_2)}{900} = \frac{(L_3+M_3+S_3)}{450}$$ 
+#5.Non-negativity constraint for production quantities
+$$L_1\ge 0,L_2\ge 0,L_3\ge 0,M_1\ge 0,M_2\ge 0,M_3\ge 0,S_1\ge 0,S_2\ge 0 \hspace{0.2cm} S_3\ge 0 $$
+**d. Write down the full mathematical formulation for this LP problem**
+$$  Max \hspace{.2cm}  Z = 420(L_1+L_2+L_3) + 360(M_1+M_2+M_3) + 300(S_1+S_2+S_3) $$
+#Subject to:
+$$L_1+M_1+S_1 \le 750 \hspace{0.2cm} (Factory1)$$
+$$L_2+M_2+S_2 \le 900 \hspace{0.2cm} (factory2)$$
+$$L_3+M_3+S_3 \le 450\hspace{0.2cm} (factory3)$$
+$$20L_1+15M_1+12S_1 \le 13,000 \hspace{0.2cm} (factory1)$$
+$$20L_2+15M_2+12S_2 \le 12,000 \hspace{0.2cm} (factory2)$$
+$$20L_3+15M_3+12S_3 \le 5,000\hspace{0.2cm} (factory3)$$
+$$L_1+L_2+L_3 \le 900 \hspace{0.2cm} (Large)$$
+$$M_1+M_2+M_3 \le 1200 \hspace{0.2cm} (Medium)$$
+$$S_1+S_2+S_3 \le 750 \hspace{0.2cm} (Small)$$
+$$\frac{(L_1+M_1+S_1)}{750} = \frac{(L_2+M_2+S_2)}{900} = \frac{(L_3+M_3+S_3)}{450}$$
+$$L_1\ge 0,L_2\ge 0,L_3\ge 0,M_1\ge 0,M_2\ge 0,M_3\ge 0,S_1\ge 0,S_2\ge 0 \hspace{0.2cm} and \hspace{0.2cm} S_3\ge 0 $$
+```{r}
+
+#OBJECTIVE FUNCTION:
+f.obj<-c(420,360,300,420,360,300,420,360,300)
+
+#Constraints
+f.con<-matrix(c(1, 1, 1, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 1, 1, 1, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 1, 1, 1,
+                20, 15, 12, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 20, 15, 12, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 20, 15, 12,
+                1, 0, 0, 1, 0, 0, 1, 0, 0,
+                0, 1, 0, 0, 1, 0, 0, 1, 0,
+                0, 0, 1, 0, 0, 1, 0, 0, 1), nrow = 9, byrow = TRUE)
+
+#set inequality signs
+f.dir<- c("<=", "<=", "<=", "<=", "<=", "<=", "<=", "<=", "<=" )
+
+#set right hand side coefficients
+f.rhs<-c(750, 900, 450, 13000, 12000, 5000, 900, 1200, 750)
+
+#value of z
+lp("max", f.obj, f.con, f.dir, f.rhs)
+
+#value of the variables
+lp("max", f.obj, f.con, f.dir, f.rhs)$solution
+```

@@ -1,0 +1,141 @@
+---
+title: "Module 11 – Integer Programming"
+author: "shiva gadila"
+date: "2023-11-20"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+day_workers <- c(Sunday = 20, Monday = 25, Tuesday = 22, Wednesday = 28, Thursday = 25, Friday = 22, Saturday = 20)
+
+workers_table <- data.frame(Day = names(day_workers), Required_Workers = as.numeric(day_workers), row.names = NULL)
+
+print(workers_table)
+
+```
+```{r}
+# Define the shift days off wage
+shift_days_off_wage <- c("Sunday and Monday" = 770,
+                         "Monday and Tuesday" = 790,
+                         "Tuesday and Wednesday" = 790,
+                         "Wednesday and Thursday" = 790,
+                         "Thursday and Friday" = 790,
+                         "Friday and Saturday" = 770,
+                         "Saturday and Sunday" = 750)
+
+# Create a data frame for the shift days off wage
+shift_days_off_table <- data.frame(Shifts = 1:7, Days_Off = names(shift_days_off_wage), Wage = as.numeric(shift_days_off_wage), row.names = NULL)
+
+# Print the table
+print(shift_days_off_table)
+
+```
+# Let the Number of Workers working on shift 1, 2, 3, 4, 5, 6 & 7 are X1, X2, X3, X4, X5, X6 & X7 respectively
+
+QUESTION 1 :- Formulate the problem.
+
+$$ MINZ=770X_1+790X_2+790X_3+790X_4+790X_5+770X_6+750X_7$$
+Constraints would be:
+
+$$Sunday:- X_2+X_3+X_4+X_5+X_6≥20$$
+$$ Monday:- X_3+X_4+X_5+X_6+X_7≥25 $$ 
+$$ Tuesday:- X_4+X_5+X_6+X_7+X_1≥22 $$
+$$ Wednesday:- X_5+X_6+X_7+X_1+X_2≥28 $$
+$$Thursday:-X_6+X_7+X_1+X_2+X_3≥25$$
+$$Friday:-X_7+X_1+X_2+X_3+X_4≥22$$
+$$ Saturday:-X_1+X_2+X_3+X_4+X_5≥20$$
+$$Non-negative integers X_i\\ X_i≥0,i=1,2,3,4,5,6,7$$
+```{r}
+#Creating the lp file content.
+lp_Content<- "min:770x1+790x2+790x3+790x4+790x5+770x6+750x7;
+Sunday: x2 + x3 + x4 + x5 + x6 >= 20;
+Monday: x3 + x4 + x5 + x6 + x7 >= 25;
+Tuesday: x1 + x4 + x5 + x6 + x7 >= 22;
+Wednesday: x1 + x2 + x5 + x6 + x7 >= 28;
+Thursday: x1 + x2 + x3 + x6 + x7 >= 25;
+Friday: x1 + x2 + x3 + x4 + x7 >= 22;
+Saturday: x1 + x2 + x3 + x4 + x5 >= 20;
+int x1, x2, x3, x4, x5, x6, x7;"
+
+writeLines(lp_Content, "AP_IntegerProgramming.lp")
+```
+
+
+QUESTION 2 :- Solve the problem in R markdown.
+
+
+```{r}
+library(lpSolveAPI)
+AP_Hub_cle <- read.lp("AP_IntegerProgramming.lp")
+AP_Hub_cle
+```
+
+```{r}
+solve(AP_Hub_cle)
+```
+
+```{r}
+get.objective(AP_Hub_cle)
+```
+
+```{r}
+get.variables(AP_Hub_cle)
+```
+
+QUESTION 3 :- Find the total cost and the number of workers available each day. 
+
+```{r}
+#Number of workers available and wage for each shift. 
+shift_data <- data.frame(
+  Shift = 1:7,
+  Workers_Available = c(2, 6, 4, 0, 8, 2, 11),
+  Wage_Per_Worker = c(770, 790, 790, 790, 790, 770, 750)
+)
+
+# cost for each shift
+shift_data$Cost = shift_data$Workers_Available * shift_data$Wage_Per_Worker
+
+#total cost
+total_cost <- sum(shift_data$Cost)
+
+print(total_cost)
+print(shift_data)
+
+```
+
+```{r}
+paste("total cost expanse is $" ,get.objective(AP_Hub_cle))
+
+paste("Workers available on Sunday is" ,sum(get.variables(AP_Hub_cle)[c(2,3,4,5,6)]))
+
+paste("Workers available on Monday is" ,sum(get.variables(AP_Hub_cle)[c(3,4,5,6,7)]))
+
+paste("Workers available on Tuesday is" ,sum(get.variables(AP_Hub_cle)[c(4,5,6,7,1)]))
+
+paste("Workers available on Wednesday is" ,sum(get.variables(AP_Hub_cle)[c(5,6,7,1,2)]))
+
+paste("Workers available on Thursday is" ,sum(get.variables(AP_Hub_cle)[c(6,7,1,2,3)]))
+
+paste("Workers available on Friday is" ,sum(get.variables(AP_Hub_cle)[c(7,1,2,3,4)]))
+
+```
+Creating a table for workers avibale on each day for clear view 
+```{r}
+#Number of workers available each day
+
+workers_available <- data.frame(
+  Day = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"),
+  Workers_Available = c(20, 25, 23, 29, 25, 23, 20)
+)
+
+print(workers_available)
+
+```
+In constructing an Integer Programming (IP) model for this scenario, we established decision variables, an objective function, and constraints. The decision variables correspond to the workforce assigned to each shift. The primary goal is to minimize the overall cost, encompassing both the regular wage and supplementary pay for weekend shifts. Constraints are introduced to guarantee that the workforce aligns with the daily requirements and follows the designated shift schedule. Following the resolution of the Linear Programming model, the optimal solution indicates that the minimum total wage is $25,550, and the corresponding daily worker availability is presented in the final table. 
